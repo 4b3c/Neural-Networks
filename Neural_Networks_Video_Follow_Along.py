@@ -1,14 +1,9 @@
-import numpy as np
-import nnfs
+import numpy as np, nnfs, math
 from nnfs.datasets import spiral_data
 
 nnfs.init()
 
-X = [[1.0, 2.0, 3.0, 2.5],
-	 [2.0, 5.0, -1.0, 2.0],
-	 [-1.5, 2.7, 3.3, -0.8]]
 
-X, y = spiral_data(100, 3)
 
 class Layer_Dense:
 	def __init__(self, n_inputs, n_neurons):
@@ -17,13 +12,31 @@ class Layer_Dense:
 	def forward(self, inputs):
 		self.output = np.dot(inputs, self.weights) + self.biases
 		
+
 class Activation_RelU:
 	def forward(self, inputs):
 		self.output = np.maximum(0, inputs)
 
-Layer1 = Layer_Dense(2, 5)
-Activation1 = Activation_RelU()
+class Activation_Softmax:
+	def forward(self, inputs):
+		exp_values = np.exp(inputs - np.max(inputs, axis = 1,  keepdims = True))
+		probabiliies = exp_values / np.sum(exp_values, axis = 1, keepdims = True)
+		self.output = probabiliies
 
-Layer1.forward(X)
-Activation1.forward(Layer1.output)
-print(Activation1.output)
+
+X, y = spiral_data(samples = 100, classes = 3)
+
+dense1 = Layer_Dense(2, 3)
+activation1 = Activation_RelU()
+
+dense2 = Layer_Dense(3, 3)
+activation2 = Activation_Softmax()
+
+dense1.forward(X)
+activation1.forward(dense1.output)
+
+dense2.forward(activation1.output)
+activation2.forward(dense2.output)
+
+print(activation2.output[:5])
+
